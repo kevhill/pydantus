@@ -126,11 +126,13 @@ class TestPartial:
         assert result.name == "Bob"
         assert result.parent == "Alice"
 
-    def test_partial_new_returns_self(self):
-        """Test that new() on a BuilderTemplate returns itself."""
+    def test_partial_new_returns_concrete_builder(self):
+        """Test that new() on a BuilderTemplate returns a concrete BuilderFrom."""
         template = pydantus.BuilderFrom(Person).partial()
 
-        assert template.new() is template
+        result = template.new()
+        assert isinstance(result, pydantus.BuilderFrom)
+        assert result is not template
 
     def test_partial_partial_returns_self(self):
         """Test that partial() on a BuilderTemplate returns itself."""

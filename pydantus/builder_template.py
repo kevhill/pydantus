@@ -27,9 +27,9 @@ class BuilderTemplate(Builder):
     def __init__(self, source: Builder) -> None:
         self._source = source
 
-    def new(self) -> BuilderTemplate:
-        """Return self - the template is already a template."""
-        return self
+    def new(self) -> Builder:
+        """Spawn a fresh copy of the underlying builder."""
+        return self._source.new()
 
     def partial(self) -> BuilderTemplate:
         """Return self - the template is already a template."""

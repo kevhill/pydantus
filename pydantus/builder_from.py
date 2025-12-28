@@ -6,6 +6,7 @@ from typing import Any, Callable, Type, get_args, get_origin
 from pydantic import BaseModel
 
 from pydantus.builder_template import BuilderTemplate
+from pydantus.exceptions import BuilderTemplateValueError
 from pydantus.protocols import Builder
 
 
@@ -57,6 +58,20 @@ class BuilderFrom(Builder):
                 f"'{self._model_class.__name__}' has no field '{field_name}'."
             )
 
+    def _validate_not_template(self, value: Any, field_name: str) -> None:
+        """Validate that a value is not a BuilderTemplate.
+
+        BuilderTemplates spawn copies on any operation, so setting one as a
+        field value would lead to confusing behavior where modifications
+        don't affect the builder's data.
+        """
+        if isinstance(value, BuilderTemplate):
+            raise BuilderTemplateValueError(
+                f"Cannot set a BuilderTemplate as value for field '{field_name}'. "
+                f"BuilderTemplates are immutable and spawn copies on any operation. "
+                f"Use .new() to get a concrete builder instance instead."
+            )
+
     def _get_nested_model_type(self, field_name: str) -> Type[BaseModel]:
         """Get the BaseModel type for a nested field, validating it's a model."""
         field_type = self._model_class.model_fields[field_name].annotation
@@ -81,6 +96,7 @@ class BuilderFrom(Builder):
         """Create a setter function for the given field."""
 
         def setter(value: Any) -> "BuilderFrom":
+            self._validate_not_template(value, field_name)
             self._data[field_name] = value
             return self
 
@@ -90,6 +106,7 @@ class BuilderFrom(Builder):
         """Create an adder function that appends to a list field."""
 
         def adder(value: Any) -> "BuilderFrom":
+            self._validate_not_template(value, field_name)
             if field_name not in self._data:
                 self._data[field_name] = []
             self._data[field_name].append(value)

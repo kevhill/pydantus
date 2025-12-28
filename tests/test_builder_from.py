@@ -1,5 +1,6 @@
 """Tests for the Pydantus builder pattern."""
 
+import pytest
 from pydantic import BaseModel
 
 import pydantus
@@ -263,3 +264,92 @@ class TestNestedBuilders:
         assert model.model_dump() == {
             "nested_models": [{"a_num": 1.0}, {"a_num": 2.0}],
         }
+
+
+class TestBuilderTemplateRejection:
+    """Tests that BuilderTemplates cannot be set as field values."""
+
+    def test_set_rejects_builder_template(self):
+        """Test that set_* rejects BuilderTemplate values."""
+        template = pydantus.BuilderFrom(NestedModel).partial()
+        builder = pydantus.BuilderFrom(ParentModel)
+
+        with pytest.raises(pydantus.BuilderTemplateValueError) as exc_info:
+            builder.set_nested_model(template)
+
+        assert "Cannot set a BuilderTemplate" in str(exc_info.value)
+        assert "nested_model" in str(exc_info.value)
+        assert ".new()" in str(exc_info.value)
+
+    def test_add_rejects_builder_template(self):
+        """Test that add_* rejects BuilderTemplate values."""
+        template = pydantus.BuilderFrom(NestedModel).partial()
+        builder = pydantus.BuilderFrom(ModelWithNestedList)
+
+        with pytest.raises(pydantus.BuilderTemplateValueError) as exc_info:
+            builder.add_nested_models(template)
+
+        assert "Cannot set a BuilderTemplate" in str(exc_info.value)
+        assert "nested_models" in str(exc_info.value)
+
+    def test_set_allows_builder_from(self):
+        """Test that set_* still allows concrete BuilderFrom instances."""
+        sub_builder = pydantus.BuilderFrom(NestedModel)
+        sub_builder.set_a_num(3.14)
+
+        builder = pydantus.BuilderFrom(ParentModel)
+        builder.set_a_str("test")
+        builder.set_nested_model(sub_builder)
+
+        model = builder.build()
+
+        assert model.nested_model.a_num == 3.14
+
+    def test_add_allows_builder_from(self):
+        """Test that add_* still allows concrete BuilderFrom instances."""
+        sub_builder = pydantus.BuilderFrom(NestedModel)
+        sub_builder.set_a_num(2.71)
+
+        builder = pydantus.BuilderFrom(ModelWithNestedList)
+        builder.add_nested_models(sub_builder)
+
+        model = builder.build()
+
+        assert model.nested_models[0].a_num == 2.71
+
+    def test_set_allows_template_new(self):
+        """Test that .new() on a template produces a usable builder."""
+        template = pydantus.BuilderFrom(NestedModel).set_a_num(1.0).partial()
+
+        builder = pydantus.BuilderFrom(ParentModel)
+        builder.set_a_str("test")
+        # Using .new() creates a concrete BuilderFrom, which is allowed
+        builder.set_nested_model(template.new())
+
+        model = builder.build()
+
+        assert model.nested_model.a_num == 1.0
+
+    def test_add_allows_template_new(self):
+        """Test that .new() on a template works with add_*."""
+        template = pydantus.BuilderFrom(NestedModel).set_a_num(5.0).partial()
+
+        builder = pydantus.BuilderFrom(ModelWithNestedList)
+        builder.add_nested_models(template.new())
+
+        model = builder.build()
+
+        assert model.nested_models[0].a_num == 5.0
+
+    def test_nested_template_from_partial(self):
+        """Test that partial() on a nested builder returns a template."""
+        builder = pydantus.BuilderFrom(ParentModel)
+        builder.set_a_str("test")
+
+        # build_from returns a BuilderFrom, partial() returns a template
+        nested_template = builder.build_from_nested_model().partial()
+
+        # Trying to set this template should fail
+        other_builder = pydantus.BuilderFrom(ParentModel)
+        with pytest.raises(pydantus.BuilderTemplateValueError):
+            other_builder.set_nested_model(nested_template)
