@@ -69,16 +69,17 @@ assert my_model.model_dump() == {
 }
 ```
 
-You can also .set a builder explicitly
+You can also `.set_<field>` a builder explicitly. The setting of fields
+or building can happen in any order.
 
 ```python
 ...
 sub_builder = pydantus.BuilderFrom(NestedModel)
+sub_builder.set_many_nums([1])
 builder.set_nested_model(sub_builder)
-sub_builder.set_a_num(3.14)
+sub_builder.add_many_nums(2)
 ...
 ```
-
 
 When we have a list of nested models, this can be used to add
 multiple builders that will all be resolved at build time.
@@ -97,7 +98,7 @@ builder = pydantus.BuilderFrom(MyModel).add_nested_models(sub_builder)
 ## Immutable Builders
 
 When you need to create multiple similar objects from a common base, you can
-use `.partial()` to create a template builder. Every operation on a partial
+use `.template()` to create a builder template. Every operation on a template
 spawns a fresh copy, leaving the template unchanged:
 
 ```python
@@ -111,7 +112,7 @@ class Person(BaseModel):
 builder = pydantus.BuilderFrom(Person)
 
 # Create a template with shared parent
-children = builder.set_parent('Alice').partial()
+children = builder.set_parent('Alice').template()
 
 # Each call spawns a fresh copy from the template
 child_a = children.set_name('Bob').build()

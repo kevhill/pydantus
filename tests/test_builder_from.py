@@ -271,7 +271,7 @@ class TestBuilderTemplateRejection:
 
     def test_set_rejects_builder_template(self):
         """Test that set_* rejects BuilderTemplate values."""
-        template = pydantus.BuilderFrom(NestedModel).partial()
+        template = pydantus.BuilderFrom(NestedModel).template()
         builder = pydantus.BuilderFrom(ParentModel)
 
         with pytest.raises(pydantus.BuilderTemplateValueError) as exc_info:
@@ -283,7 +283,7 @@ class TestBuilderTemplateRejection:
 
     def test_add_rejects_builder_template(self):
         """Test that add_* rejects BuilderTemplate values."""
-        template = pydantus.BuilderFrom(NestedModel).partial()
+        template = pydantus.BuilderFrom(NestedModel).template()
         builder = pydantus.BuilderFrom(ModelWithNestedList)
 
         with pytest.raises(pydantus.BuilderTemplateValueError) as exc_info:
@@ -319,7 +319,7 @@ class TestBuilderTemplateRejection:
 
     def test_set_allows_template_new(self):
         """Test that .new() on a template produces a usable builder."""
-        template = pydantus.BuilderFrom(NestedModel).set_a_num(1.0).partial()
+        template = pydantus.BuilderFrom(NestedModel).set_a_num(1.0).template()
 
         builder = pydantus.BuilderFrom(ParentModel)
         builder.set_a_str("test")
@@ -332,7 +332,7 @@ class TestBuilderTemplateRejection:
 
     def test_add_allows_template_new(self):
         """Test that .new() on a template works with add_*."""
-        template = pydantus.BuilderFrom(NestedModel).set_a_num(5.0).partial()
+        template = pydantus.BuilderFrom(NestedModel).set_a_num(5.0).template()
 
         builder = pydantus.BuilderFrom(ModelWithNestedList)
         builder.add_nested_models(template.new())
@@ -341,13 +341,13 @@ class TestBuilderTemplateRejection:
 
         assert model.nested_models[0].a_num == 5.0
 
-    def test_nested_template_from_partial(self):
-        """Test that partial() on a nested builder returns a template."""
+    def test_nested_template_from_template(self):
+        """Test that template() on a nested builder returns a template."""
         builder = pydantus.BuilderFrom(ParentModel)
         builder.set_a_str("test")
 
-        # build_from returns a BuilderFrom, partial() returns a template
-        nested_template = builder.build_from_nested_model().partial()
+        # build_from returns a BuilderFrom, template() returns a template
+        nested_template = builder.build_from_nested_model().template()
 
         # Trying to set this template should fail
         other_builder = pydantus.BuilderFrom(ParentModel)

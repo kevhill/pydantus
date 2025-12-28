@@ -28,7 +28,7 @@ class BuilderFrom(Builder):
         }
         return new_builder
 
-    def partial(self) -> Builder:
+    def template(self) -> Builder:
         """Create a template builder that spawns copies on any operation."""
         return BuilderTemplate(self)
 

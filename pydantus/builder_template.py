@@ -16,7 +16,7 @@ class BuilderTemplate(Builder):
     whenever any mutating operation is performed. This enables
     creating multiple variations from a common base:
 
-        children = builder.set_parent('personA').partial()
+        children = builder.set_parent('personA').template()
         child_a = children.set_name('alice').build()
         child_b = children.set_name('bob').build()
 
@@ -31,7 +31,7 @@ class BuilderTemplate(Builder):
         """Spawn a fresh copy of the underlying builder."""
         return self._source.new()
 
-    def partial(self) -> BuilderTemplate:
+    def template(self) -> BuilderTemplate:
         """Return self - the template is already a template."""
         return self
 

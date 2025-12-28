@@ -25,7 +25,7 @@ class Builder(Protocol):
         """Create an independent copy of this builder with separate data."""
         ...
 
-    def partial(self) -> Builder:
+    def template(self) -> Builder:
         """Create a template builder that spawns copies on any operation."""
         ...
 
