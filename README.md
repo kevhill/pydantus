@@ -1,5 +1,5 @@
-# pydantus
-Pydactus: A builder framework for Pydantic
+# Pydantus
+Pydantus: A builder framework for Pydantic
 
 # Overview
 This library allows you to use (almost) any pydantic model in a builder pattern.
@@ -17,7 +17,7 @@ class MyModel(BaseModel):
     many_nums: list[int]
 
 
-builder = Pydantus.BuilderFrom(MyModel)
+builder = pydantus.BuilderFrom(MyModel)
 
 my_model = (builder
     .set_a_str('foo')
